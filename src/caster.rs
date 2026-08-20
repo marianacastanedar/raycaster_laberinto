@@ -1,6 +1,7 @@
 use crate::framebuffer::Framebuffer;
 use crate::maze::Maze;
 use crate::player::Player;
+use crate::textures::TextureManager;
 
 /// Resultado del lanzamiento de un rayo.
 struct RayHit {
@@ -10,13 +11,19 @@ struct RayHit {
     cell_char: char,
     /// True si se golpeo una cara vertical, false si es horizontal.
     is_vertical: bool,
+    /// Posicion X del impacto en coordenadas de mundo.
+    hit_x: f32,
+    /// Posicion Y del impacto en coordenadas de mundo.
+    hit_y: f32,
 }
 
 /// Renderiza la escena en 3D usando raycasting.
+#[allow(clippy::too_many_arguments)]
 pub fn render_3d(
     fb: &mut Framebuffer,
     player: &Player,
     maze: &Maze,
+    textures: &TextureManager,
     fov: f32,
     block_size: f32,
     ceiling_color: u32,
@@ -48,11 +55,13 @@ pub fn render_3d(
         let wall_top = (screen_height as f32 / 2.0 - wall_height / 2.0) as i32;
         let wall_bottom = (screen_height as f32 / 2.0 + wall_height / 2.0) as i32;
 
-        // Obtiene el color base de la pared
-        let base_color = get_wall_color(hit.cell_char);
-
-        // Aplica sombreado por distancia y orientacion
-        let wall_color = apply_shading(base_color, corrected_distance, hit.is_vertical);
+        // Calcula la coordenada horizontal de textura (tx)
+        // Si es cara vertical, usa hit_y; si es horizontal, usa hit_x
+        let tx = if hit.is_vertical {
+            (hit.hit_y % block_size) / block_size
+        } else {
+            (hit.hit_x % block_size) / block_size
+        };
 
         // Dibuja la columna: techo, pared, piso
         for y in 0..screen_height {
@@ -60,7 +69,15 @@ pub fn render_3d(
             let color = if y_i32 < wall_top {
                 ceiling_color
             } else if y_i32 >= wall_top && y_i32 < wall_bottom {
-                wall_color
+                // Calcula la coordenada vertical de textura (ty)
+                // Importante: usar wall_height sin recortar para evitar estiramiento
+                let ty = (y_i32 - wall_top) as f32 / wall_height;
+
+                // Muestrea la textura
+                let texel_color = textures.sample(hit.cell_char, tx, ty);
+
+                // Aplica sombreado por distancia y orientacion
+                apply_shading(texel_color, corrected_distance, hit.is_vertical)
             } else {
                 floor_color
             };
@@ -92,6 +109,8 @@ fn cast_ray(player: &Player, maze: &Maze, angle: f32, block_size: f32) -> RayHit
                 distance: max_distance,
                 cell_char: '1',
                 is_vertical: true,
+                hit_x: player.pos.x,
+                hit_y: player.pos.y,
             };
         }
 
@@ -113,21 +132,12 @@ fn cast_ray(player: &Player, maze: &Maze, angle: f32, block_size: f32) -> RayHit
                 distance,
                 cell_char,
                 is_vertical,
+                hit_x: ray_x,
+                hit_y: ray_y,
             };
         }
 
         prev_cell_x = cell_x;
-    }
-}
-
-/// Devuelve el color base de una pared segun su tipo.
-fn get_wall_color(ch: char) -> u32 {
-    match ch {
-        '1' => 0x8B8B8B, // Gris claro (piedra)
-        '2' => 0xD2691E, // Naranja chocolate (ladrillo)
-        '3' => 0xA0522D, // Sienna (madera)
-        'g' => 0x00FF00, // Verde brillante (meta)
-        _ => 0x808080,   // Gris generico
     }
 }
 

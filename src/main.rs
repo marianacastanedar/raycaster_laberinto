@@ -2,12 +2,14 @@ mod caster;
 mod framebuffer;
 mod maze;
 mod player;
+mod textures;
 
 use raylib::prelude::*;
 
 use framebuffer::Framebuffer;
 use maze::Maze;
 use player::Player;
+use textures::TextureManager;
 
 /// Dimensiones de la ventana en pixeles.
 pub const SCREEN_WIDTH: i32 = 1000;
@@ -49,6 +51,9 @@ fn main() {
     // Carga el laberinto desde el archivo
     let maze = Maze::load("maze.txt", BLOCK_SIZE);
 
+    // Carga todas las texturas de paredes
+    let textures = TextureManager::load();
+
     // Crea el jugador en la posicion inicial del laberinto
     let mut player = Player::new(maze.player_start);
 
@@ -84,6 +89,7 @@ fn main() {
             &mut fb,
             &player,
             &maze,
+            &textures,
             FOV,
             BLOCK_SIZE,
             CEILING_COLOR,
