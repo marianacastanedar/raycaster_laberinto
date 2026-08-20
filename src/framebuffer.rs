@@ -28,7 +28,6 @@ impl Framebuffer {
     }
 
     /// Limpia todo el buffer con el color de fondo.
-    #[allow(dead_code)]
     pub fn clear(&mut self) {
         let r = ((self.background_color >> 16) & 0xFF) as u8;
         let g = ((self.background_color >> 8) & 0xFF) as u8;

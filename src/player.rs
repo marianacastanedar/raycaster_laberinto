@@ -20,6 +20,7 @@ impl Player {
 
     /// Actualiza el estado del jugador segun la entrada del usuario.
     /// Maneja movimiento (flechas arriba/abajo), rotacion (flechas izq/der y mouse) y colisiones.
+    /// Retorna true si el jugador se movio en este frame.
     #[allow(clippy::too_many_arguments)]
     pub fn update(
         &mut self,
@@ -31,7 +32,7 @@ impl Player {
         player_radius: f32,
         block_size: f32,
         dt: f32,
-    ) {
+    ) -> bool {
         // Rotacion con flechas izquierda y derecha
         if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
             self.a += rotation_speed * dt;
@@ -78,6 +79,12 @@ impl Player {
             if !self.check_collision(test_pos_y, maze, player_radius, block_size) {
                 self.pos.y = new_y;
             }
+
+            // Retorna true porque el jugador intento moverse
+            true
+        } else {
+            // No hubo movimiento
+            false
         }
     }
 
@@ -100,6 +107,31 @@ impl Player {
             // Si alguna de las celdas es solida, hay colision
             if maze.is_solid(cell_x, cell_y) {
                 return true;
+            }
+        }
+
+        false
+    }
+
+    /// Verifica si el jugador ha alcanzado la meta.
+    /// Retorna true si alguna de las celdas vecinas es 'g'.
+    pub fn has_reached_goal(&self, maze: &Maze, block_size: f32) -> bool {
+        let cell_x = (self.pos.x / block_size) as usize;
+        let cell_y = (self.pos.y / block_size) as usize;
+
+        // Verifica las cuatro celdas vecinas
+        let neighbors = [
+            (cell_x.wrapping_add(1), cell_y),
+            (cell_x.wrapping_sub(1), cell_y),
+            (cell_x, cell_y.wrapping_add(1)),
+            (cell_x, cell_y.wrapping_sub(1)),
+        ];
+
+        for (nx, ny) in neighbors {
+            if let Some(ch) = maze.get(nx, ny) {
+                if ch == 'g' {
+                    return true;
+                }
             }
         }
 

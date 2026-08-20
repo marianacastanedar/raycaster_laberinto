@@ -78,7 +78,6 @@ impl Maze {
 
     /// Devuelve el caracter en la celda especificada.
     /// Retorna None si la posicion esta fuera de rango.
-    #[allow(dead_code)]
     pub fn get(&self, x: usize, y: usize) -> Option<char> {
         if y < self.height && x < self.width {
             Some(self.data[y][x])
