@@ -18,14 +18,12 @@ impl<'a> AudioManager<'a> {
     /// Carga todos los recursos de audio.
     pub fn load(audio: &'a mut RaylibAudio) -> Self {
         // Carga la música de fondo (obligatoria)
-        let mut bgm = audio
-            .new_music("assets/audio/bgm.ogg")
-            .unwrap_or_else(|_| {
-                panic!(
-                    "no se pudo cargar assets/audio/bgm.ogg; \
+        let mut bgm = audio.new_music("assets/audio/bgm.ogg").unwrap_or_else(|_| {
+            panic!(
+                "no se pudo cargar assets/audio/bgm.ogg; \
                      revisa PREPARACION_LOCAL.md"
-                )
-            });
+            )
+        });
         bgm.set_looping(true);
         bgm.set_volume(0.5); // Volumen inicial al 50%
 

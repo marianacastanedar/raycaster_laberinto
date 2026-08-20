@@ -52,7 +52,7 @@ pub fn render_minimap(fb: &mut Framebuffer, maze: &Maze, player: &Player, block_
         }
     }
 
-    // Dibuja el jugador como un punto amarillo con linea de direccion
+    // Dibuja el jugador como un punto con linea de direccion
     let player_screen_x = minimap_x + (player.pos.x * scale) as usize;
     let player_screen_y = minimap_y + (player.pos.y * scale) as usize;
 
@@ -98,7 +98,7 @@ fn get_minimap_color(ch: char) -> u32 {
     }
 }
 
-/// Dibuja un circulo pequeno en el minimapa.
+/// Dibuja un circulo en el minimapa.
 fn draw_circle_minimap(fb: &mut Framebuffer, cx: i32, cy: i32, radius: i32, color: u32) {
     for y in -radius..=radius {
         for x in -radius..=radius {

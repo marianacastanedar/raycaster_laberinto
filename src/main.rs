@@ -14,7 +14,7 @@ use audio::AudioManager;
 use framebuffer::Framebuffer;
 use maze::Maze;
 use player::Player;
-use screens::{render_success, render_welcome, GameState};
+use screens::{render_success, render_welcome, GameState, ScreenImages};
 use sprites::SpriteManager;
 use textures::TextureManager;
 
@@ -56,7 +56,8 @@ fn main() {
         .build();
 
     // Inicializa el dispositivo de audio
-    let mut raudio = RaylibAudio::init_audio_device().expect("no se pudo inicializar el dispositivo de audio");
+    let mut raudio =
+        RaylibAudio::init_audio_device().expect("no se pudo inicializar el dispositivo de audio");
 
     // Carga el laberinto desde el archivo
     let maze = Maze::load("maze.txt", BLOCK_SIZE);
@@ -66,6 +67,9 @@ fn main() {
 
     // Carga la textura de sprites (fuego)
     let sprites = SpriteManager::load();
+
+    // Carga las imagenes de las pantallas de bienvenida y éxito
+    let screen_images = ScreenImages::load();
 
     // Carga los recursos de audio
     let mut audio_manager = AudioManager::load(&mut raudio);
@@ -105,7 +109,7 @@ fn main() {
         match game_state {
             GameState::Welcome => {
                 // Renderiza la pantalla de bienvenida
-                render_welcome(&mut fb);
+                render_welcome(&mut fb, &screen_images);
 
                 // Espera que el jugador presione Enter para comenzar
                 if rl.is_key_pressed(KeyboardKey::KEY_ENTER) {
@@ -165,7 +169,7 @@ fn main() {
             }
             GameState::Success => {
                 // Renderiza la pantalla de éxito
-                render_success(&mut fb);
+                render_success(&mut fb, &screen_images);
 
                 // Espera que el jugador presione Enter para reiniciar
                 if rl.is_key_pressed(KeyboardKey::KEY_ENTER) {

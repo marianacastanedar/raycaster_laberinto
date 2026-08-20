@@ -1,3 +1,5 @@
+use image::RgbaImage;
+
 use crate::framebuffer::Framebuffer;
 
 /// Estados del juego.
@@ -11,27 +13,60 @@ pub enum GameState {
     Success,
 }
 
+/// Administra las imagenes de fondo de las pantallas de bienvenida y éxito.
+pub struct ScreenImages {
+    welcome: RgbaImage,
+    success: RgbaImage,
+}
+
+impl ScreenImages {
+    /// Carga las imagenes desde assets/images/.
+    pub fn load() -> Self {
+        let welcome = load_image("assets/images/imagenBienvenida.png");
+        let success = load_image("assets/images/imagenExito.png");
+
+        Self { welcome, success }
+    }
+}
+
+/// Carga una imagen desde un archivo
+fn load_image(path: &str) -> RgbaImage {
+    let bytes = std::fs::read(path).unwrap_or_else(|_| {
+        panic!(
+            "no se pudo leer la imagen {path}; revisa PREPARACION_LOCAL.md \
+             y verifica que el archivo exista en la carpeta correcta"
+        )
+    });
+
+    image::load_from_memory(&bytes)
+        .unwrap_or_else(|_| panic!("no se pudo decodificar la imagen {path}"))
+        .to_rgba8()
+}
+
 /// Renderiza la pantalla de bienvenida.
-pub fn render_welcome(fb: &mut Framebuffer) {
+pub fn render_welcome(fb: &mut Framebuffer, images: &ScreenImages) {
     fb.clear();
     fb.set_background_color(0x1A1A26);
+    draw_image_centered(fb, &images.welcome);
+    dim_overlay(fb, 0.45);
 
     // Título centrado
-    let title = "RAYCASTER LABERINTO";
+    let title = "LABERINTO RAYCASTER :)";
     draw_text_centered(fb, title, fb.height / 2 - 80, 0xFFFFFF, 2);
 
     // Instrucciones
     let instructions = [
         "CONTROLES:",
         "",
-        "FLECHAS ARRIBA/ABAJO - Mover",
-        "FLECHAS IZQUIERDA/DERECHA - Girar",
-        "MOUSE - Mirar alrededor",
+        "FLECHAS ARRIBA/ABAJO - SE MUEVE",
+        "FLECHAS IZQUIERDA/DERECHA O MOUSE - GIRA",
         "",
         "OBJETIVO:",
-        "Llega a la meta (pared verde)",
+        "LLEGAR A LA PUERTA (EL PUNTO ROSA)",
         "",
-        "Presiona ENTER para comenzar",
+        "PRESIONAR ENTER PARA EMPEZAR",
+        "",
+        "BUENA SUERTEEE :P",
     ];
 
     let mut y = fb.height / 2 - 20;
@@ -42,19 +77,65 @@ pub fn render_welcome(fb: &mut Framebuffer) {
 }
 
 /// Renderiza la pantalla de éxito.
-pub fn render_success(fb: &mut Framebuffer) {
+pub fn render_success(fb: &mut Framebuffer, images: &ScreenImages) {
     fb.clear();
     fb.set_background_color(0x1A1A26);
+    draw_image_centered(fb, &images.success);
+    dim_overlay(fb, 0.45);
 
     // Mensaje de victoria
     let title = "FELICITACIONES!";
     draw_text_centered(fb, title, fb.height / 2 - 60, 0x00FF00, 2);
 
-    let subtitle = "Completaste el laberinto";
+    let subtitle = "EXCELENTEEE";
     draw_text_centered(fb, subtitle, fb.height / 2 - 10, 0xCCCCCC, 1);
 
-    let instruction = "Presiona ENTER para jugar de nuevo";
+    let instruction = "SI QUIERES JUGAR DE NUEVO PON ENTER";
     draw_text_centered(fb, instruction, fb.height / 2 + 40, 0xCCCCCC, 1);
+}
+
+/// Dibuja una imagen centrada en el framebuffer, escalada para que quepa
+/// completa dentro de la ventana sin deformarse (ajuste "contain").
+fn draw_image_centered(fb: &mut Framebuffer, image: &RgbaImage) {
+    let img_width = image.width() as f32;
+    let img_height = image.height() as f32;
+
+    // Calcula el factor de escala que hace caber la imagen completa en la ventana
+    let scale = (fb.width as f32 / img_width).min(fb.height as f32 / img_height);
+
+    let draw_width = (img_width * scale).round() as usize;
+    let draw_height = (img_height * scale).round() as usize;
+
+    let offset_x = (fb.width.saturating_sub(draw_width)) / 2;
+    let offset_y = (fb.height.saturating_sub(draw_height)) / 2;
+
+    for dy in 0..draw_height {
+        let ty = ((dy as f32 / scale) as u32).min(image.height() - 1);
+        for dx in 0..draw_width {
+            let tx = ((dx as f32 / scale) as u32).min(image.width() - 1);
+            let pixel = image.get_pixel(tx, ty);
+
+            // Respeta la transparencia de la imagen
+            if pixel[3] == 0 {
+                continue;
+            }
+
+            let color =
+                ((pixel[0] as u32) << 16) | ((pixel[1] as u32) << 8) | (pixel[2] as u32);
+            fb.point(offset_x + dx, offset_y + dy, color);
+        }
+    }
+}
+
+/// Oscurece todo el framebuffer mezclándolo con negro, para que el texto
+/// se lea con claridad sobre la imagen de fondo.
+/// alpha: 0.0 = sin cambio, 1.0 = negro total.
+fn dim_overlay(fb: &mut Framebuffer, alpha: f32) {
+    for i in (0..fb.buffer.len()).step_by(4) {
+        fb.buffer[i] = (fb.buffer[i] as f32 * (1.0 - alpha)) as u8;
+        fb.buffer[i + 1] = (fb.buffer[i + 1] as f32 * (1.0 - alpha)) as u8;
+        fb.buffer[i + 2] = (fb.buffer[i + 2] as f32 * (1.0 - alpha)) as u8;
+    }
 }
 
 /// Dibuja texto centrado en el framebuffer.
