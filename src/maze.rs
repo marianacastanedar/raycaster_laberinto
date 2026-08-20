@@ -99,6 +99,7 @@ impl Maze {
 
     /// Renderiza el laberinto completo en vista 2D cenital.
     /// Escala el laberinto para que quepa en el framebuffer.
+    #[allow(dead_code)]
     pub fn render_2d(&self, fb: &mut Framebuffer, block_size: f32) {
         // Calcula el factor de escala para que el laberinto quepa en pantalla
         let scale_x = fb.width as f32 / (self.width as f32 * block_size);
@@ -124,6 +125,7 @@ impl Maze {
 }
 
 /// Devuelve el color asociado a un tipo de celda.
+#[allow(dead_code)]
 fn get_cell_color(ch: char) -> u32 {
     match ch {
         '1' => 0x5A5A5A, // Gris oscuro (piedra)
@@ -135,6 +137,7 @@ fn get_cell_color(ch: char) -> u32 {
 }
 
 /// Dibuja un rectangulo solido en el framebuffer.
+#[allow(dead_code)]
 fn draw_rect(fb: &mut Framebuffer, x: usize, y: usize, w: usize, h: usize, color: u32) {
     for dy in 0..h {
         for dx in 0..w {

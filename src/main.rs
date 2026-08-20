@@ -1,3 +1,4 @@
+mod caster;
 mod framebuffer;
 mod maze;
 mod player;
@@ -78,14 +79,16 @@ fn main() {
             dt,
         );
 
-        // Limpia el framebuffer con el color de fondo
-        fb.clear();
-
-        // Renderiza el laberinto en vista 2D cenital
-        maze.render_2d(&mut fb, BLOCK_SIZE);
-
-        // Renderiza el jugador encima del laberinto
-        player.render_2d(&mut fb, BLOCK_SIZE);
+        // Renderiza la escena en 3D usando raycasting
+        let _zbuffer = caster::render_3d(
+            &mut fb,
+            &player,
+            &maze,
+            FOV,
+            BLOCK_SIZE,
+            CEILING_COLOR,
+            FLOOR_COLOR,
+        );
 
         // Actualiza la textura de raylib con el contenido del framebuffer
         texture

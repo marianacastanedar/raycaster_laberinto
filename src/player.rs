@@ -32,10 +32,10 @@ impl Player {
         dt: f32,
     ) {
         // Rotacion con left y right
-        if rl.is_key_down(KeyboardKey::KEY_LEFT) {
+        if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
             self.a += rotation_speed * dt;
         }
-        if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
+        if rl.is_key_down(KeyboardKey::KEY_LEFT) {
             self.a -= rotation_speed * dt;
         }
 
@@ -102,6 +102,7 @@ impl Player {
     }
 
     /// Renderiza el jugador en la vista 2D como un punto con una linea de direccion.
+    #[allow(dead_code)]
     pub fn render_2d(&self, fb: &mut Framebuffer, block_size: f32) {
         // Calcula el factor de escala para que el laberinto quepa en pantalla
         let maze_width_pixels = 25.0 * block_size;
@@ -126,6 +127,7 @@ impl Player {
 }
 
 /// Dibuja un circulo en el framebuffer usando el algoritmo de punto medio.
+#[allow(dead_code)]
 fn draw_circle(fb: &mut Framebuffer, cx: i32, cy: i32, radius: i32, color: u32) {
     for y in -radius..=radius {
         for x in -radius..=radius {
@@ -141,6 +143,7 @@ fn draw_circle(fb: &mut Framebuffer, cx: i32, cy: i32, radius: i32, color: u32) 
 }
 
 /// Dibuja una linea en el framebuffer usando el algoritmo de Bresenham.
+#[allow(dead_code)]
 fn draw_line(fb: &mut Framebuffer, x0: i32, y0: i32, x1: i32, y1: i32, color: u32) {
     let dx = (x1 - x0).abs();
     let dy = (y1 - y0).abs();
