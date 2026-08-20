@@ -1,10 +1,12 @@
 mod framebuffer;
 mod maze;
+mod player;
 
 use raylib::prelude::*;
 
 use framebuffer::Framebuffer;
 use maze::Maze;
+use player::Player;
 
 /// Dimensiones de la ventana en pixeles.
 pub const SCREEN_WIDTH: i32 = 1000;
@@ -46,6 +48,9 @@ fn main() {
     // Carga el laberinto desde el archivo
     let maze = Maze::load("maze.txt", BLOCK_SIZE);
 
+    // Crea el jugador en la posicion inicial del laberinto
+    let mut player = Player::new(maze.player_start);
+
     // Crea el framebuffer que usaremos para renderizar pixel por pixel
     let mut fb = Framebuffer::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
     fb.set_background_color(0x000000); // Negro
@@ -60,11 +65,27 @@ fn main() {
 
     // Ciclo principal
     while !rl.window_should_close() {
+        let dt = rl.get_frame_time();
+
+        // Actualiza el estado del jugador segun la entrada
+        player.update(
+            &rl,
+            &maze,
+            MOVE_SPEED,
+            ROTATION_SPEED,
+            PLAYER_RADIUS,
+            BLOCK_SIZE,
+            dt,
+        );
+
         // Limpia el framebuffer con el color de fondo
         fb.clear();
 
         // Renderiza el laberinto en vista 2D cenital
         maze.render_2d(&mut fb, BLOCK_SIZE);
+
+        // Renderiza el jugador encima del laberinto
+        player.render_2d(&mut fb, BLOCK_SIZE);
 
         // Actualiza la textura de raylib con el contenido del framebuffer
         texture

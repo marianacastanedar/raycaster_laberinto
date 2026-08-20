@@ -13,7 +13,6 @@ pub struct Maze {
     /// Alto del laberinto en celdas.
     pub height: usize,
     /// Posicion inicial del jugador en coordenadas de mundo (pixeles).
-    #[allow(dead_code)]
     pub player_start: Vec2,
     /// Posiciones de las llamas en coordenadas de mundo (pixeles).
     #[allow(dead_code)]
@@ -90,7 +89,6 @@ impl Maze {
     }
 
     /// Verifica si una celda es solida (no se puede atravesar).
-    #[allow(dead_code)]
     pub fn is_solid(&self, x: usize, y: usize) -> bool {
         match self.get(x, y) {
             Some(' ') => false,
