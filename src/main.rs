@@ -1,6 +1,7 @@
 mod caster;
 mod framebuffer;
 mod maze;
+mod minimap;
 mod player;
 mod textures;
 
@@ -100,6 +101,9 @@ fn main() {
             FLOOR_COLOR,
         );
 
+        // Renderiza el minimapa en la esquina superior derecha
+        minimap::render_minimap(&mut fb, &maze, &player, BLOCK_SIZE);
+
         // Actualiza la textura de raylib con el contenido del framebuffer
         texture
             .update_texture(&fb.buffer)
@@ -110,5 +114,8 @@ fn main() {
 
         // Dibuja la textura en pantalla
         d.draw_texture(&texture, 0, 0, Color::WHITE);
+
+        // Dibuja el contador de FPS en la esquina superior izquierda
+        d.draw_fps(10, 10);
     }
 }
