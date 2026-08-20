@@ -19,7 +19,7 @@ impl Player {
     }
 
     /// Actualiza el estado del jugador segun la entrada del usuario.
-    /// Maneja movimiento (W/S), rotacion (A/D) y colisiones.
+    /// Maneja movimiento (flechas arriba/abajo), rotacion (flechas izq/der y mouse) y colisiones.
     #[allow(clippy::too_many_arguments)]
     pub fn update(
         &mut self,
@@ -27,17 +27,22 @@ impl Player {
         maze: &Maze,
         move_speed: f32,
         rotation_speed: f32,
+        mouse_sensitivity: f32,
         player_radius: f32,
         block_size: f32,
         dt: f32,
     ) {
-        // Rotacion con left y right
+        // Rotacion con flechas izquierda y derecha
         if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
             self.a += rotation_speed * dt;
         }
         if rl.is_key_down(KeyboardKey::KEY_LEFT) {
             self.a -= rotation_speed * dt;
         }
+
+        // Rotacion con mouse (solo eje horizontal)
+        let mouse_delta = rl.get_mouse_delta();
+        self.a += mouse_delta.x * mouse_sensitivity;
 
         // Normaliza el angulo al rango [0, 2π)
         self.a = self.a.rem_euclid(std::f32::consts::TAU);

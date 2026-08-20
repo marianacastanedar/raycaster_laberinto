@@ -69,6 +69,9 @@ fn main() {
         .load_texture_from_image(&thread, &img)
         .expect("no se pudo crear la textura desde la imagen");
 
+    // Oculta y captura el cursor para control con mouse
+    rl.disable_cursor();
+
     // Ciclo principal
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
@@ -79,6 +82,7 @@ fn main() {
             &maze,
             MOVE_SPEED,
             ROTATION_SPEED,
+            MOUSE_SENSITIVITY,
             PLAYER_RADIUS,
             BLOCK_SIZE,
             dt,
