@@ -15,7 +15,6 @@ pub struct Maze {
     /// Posicion inicial del jugador en coordenadas de mundo (pixeles).
     pub player_start: Vec2,
     /// Posiciones de las llamas en coordenadas de mundo (pixeles).
-    #[allow(dead_code)]
     pub fire_positions: Vec<Vec2>,
 }
 

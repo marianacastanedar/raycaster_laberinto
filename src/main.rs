@@ -3,6 +3,7 @@ mod framebuffer;
 mod maze;
 mod minimap;
 mod player;
+mod sprites;
 mod textures;
 
 use raylib::prelude::*;
@@ -10,6 +11,7 @@ use raylib::prelude::*;
 use framebuffer::Framebuffer;
 use maze::Maze;
 use player::Player;
+use sprites::SpriteManager;
 use textures::TextureManager;
 
 /// Dimensiones de la ventana en pixeles.
@@ -55,6 +57,9 @@ fn main() {
     // Carga todas las texturas de paredes
     let textures = TextureManager::load();
 
+    // Carga la textura de sprites (fuego)
+    let sprites = SpriteManager::load();
+
     // Crea el jugador en la posicion inicial del laberinto
     let mut player = Player::new(maze.player_start);
 
@@ -90,7 +95,7 @@ fn main() {
         );
 
         // Renderiza la escena en 3D usando raycasting
-        let _zbuffer = caster::render_3d(
+        let zbuffer = caster::render_3d(
             &mut fb,
             &player,
             &maze,
@@ -99,6 +104,17 @@ fn main() {
             BLOCK_SIZE,
             CEILING_COLOR,
             FLOOR_COLOR,
+        );
+
+        // Renderiza los sprites de fuego usando el z-buffer
+        sprites.render_sprites(
+            &mut fb,
+            &player,
+            &maze.fire_positions,
+            &zbuffer,
+            FOV,
+            BLOCK_SIZE,
+            FIRE_SCALE,
         );
 
         // Renderiza el minimapa en la esquina superior derecha
