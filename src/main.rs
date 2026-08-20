@@ -1,4 +1,10 @@
+mod framebuffer;
+mod maze;
+
 use raylib::prelude::*;
+
+use framebuffer::Framebuffer;
+use maze::Maze;
 
 /// Dimensiones de la ventana en pixeles.
 pub const SCREEN_WIDTH: i32 = 1000;
@@ -37,9 +43,38 @@ fn main() {
         .title("Raycaster Laberinto")
         .build();
 
+    // Carga el laberinto desde el archivo
+    let maze = Maze::load("maze.txt", BLOCK_SIZE);
+
+    // Crea el framebuffer que usaremos para renderizar pixel por pixel
+    let mut fb = Framebuffer::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
+    fb.set_background_color(0x000000); // Negro
+
+    // Crea una imagen de raylib con el tamano de la pantalla
+    let img = Image::gen_image_color(SCREEN_WIDTH, SCREEN_HEIGHT, Color::BLACK);
+
+    // Convierte la imagen a una textura que se puede dibujar
+    let mut texture = rl
+        .load_texture_from_image(&thread, &img)
+        .expect("no se pudo crear la textura desde la imagen");
+
     // Ciclo principal
     while !rl.window_should_close() {
+        // Limpia el framebuffer con el color de fondo
+        fb.clear();
+
+        // Renderiza el laberinto en vista 2D cenital
+        maze.render_2d(&mut fb, BLOCK_SIZE);
+
+        // Actualiza la textura de raylib con el contenido del framebuffer
+        texture
+            .update_texture(&fb.buffer)
+            .expect("no se pudo actualizar la textura");
+
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
+
+        // Dibuja la textura en pantalla
+        d.draw_texture(&texture, 0, 0, Color::WHITE);
     }
 }
