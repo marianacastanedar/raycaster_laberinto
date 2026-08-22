@@ -10,7 +10,7 @@ pub struct SpriteManager {
 }
 
 impl SpriteManager {
-    /// Carga la textura de fuego desde assets/sprites/.
+    /// Carga la textura desde assets/sprites/.
     pub fn load() -> Self {
         let fire_texture = image::open("assets/sprites/fire.png")
             .unwrap_or_else(|_| {
@@ -40,7 +40,7 @@ impl SpriteManager {
         let screen_width = fb.width;
         let screen_height = fb.height;
 
-        // Calcula la distancia al plano de proyeccion
+        // Calcula la distancia
         let projection_distance = (screen_width as f32 / 2.0) / (fov / 2.0).tan();
 
         // Prepara una lista de sprites con su distancia para ordenarlos
@@ -55,19 +55,18 @@ impl SpriteManager {
             })
             .collect();
 
-        // Ordena de mas lejano a mas cercano para dibujar correctamente
+        // Ordena de mas lejano a mas cercano
         sprites_with_distance.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
         // Renderiza cada sprite
         for (i, distance) in sprites_with_distance {
             let fire_pos = fire_positions[i];
 
-            // Calcula el angulo del sprite respecto al jugador
+            // Calcula el angulo
             let dx = fire_pos.x - player.pos.x;
             let dy = fire_pos.y - player.pos.y;
             let mut angle = dy.atan2(dx) - player.a;
 
-            // Normaliza el angulo al rango [-PI, PI]
             while angle > std::f32::consts::PI {
                 angle -= std::f32::consts::TAU;
             }
@@ -75,27 +74,19 @@ impl SpriteManager {
                 angle += std::f32::consts::TAU;
             }
 
-            // Si el sprite esta fuera del campo de vision, no lo dibuja
-            let fov_margin = fov / 2.0 + 0.2; // Pequeño margen extra
+            let fov_margin = fov / 2.0 + 0.2; 
             if angle.abs() > fov_margin {
                 continue;
             }
 
-            // Calcula dimensiones del sprite en pantalla
             let sprite_height = (block_size / distance) * projection_distance * fire_scale;
             let sprite_width = sprite_height
                 * (self.fire_texture.width() as f32 / self.fire_texture.height() as f32);
-
-            // Calcula la posicion horizontal en pantalla usando tan
             let center_x = (screen_width as f32 / 2.0) + angle.tan() * projection_distance;
-
-            // Calcula la posicion vertical (el sprite descansa en el piso)
             let floor_line = (screen_height as f32 / 2.0)
                 + ((block_size / distance) * projection_distance) / 2.0;
             let sprite_bottom = floor_line;
             let sprite_top = sprite_bottom - sprite_height;
-
-            // Calcula los limites en pantalla
             let start_x = (center_x - sprite_width / 2.0) as i32;
             let end_x = (center_x + sprite_width / 2.0) as i32;
             let start_y = sprite_top as i32;
@@ -103,7 +94,6 @@ impl SpriteManager {
 
             // Dibuja cada columna del sprite
             for screen_x in start_x.max(0)..end_x.min(screen_width as i32) {
-                // Verifica z-buffer: si hay una pared mas cerca, no dibuja esta columna
                 if screen_x >= 0
                     && (screen_x as usize) < zbuffer.len()
                     && distance >= zbuffer[screen_x as usize]
@@ -111,7 +101,6 @@ impl SpriteManager {
                     continue;
                 }
 
-                // Calcula la coordenada de textura horizontal
                 let tx = (screen_x - start_x) as f32 / sprite_width;
                 let texture_x = (tx * self.fire_texture.width() as f32)
                     .clamp(0.0, self.fire_texture.width() as f32 - 1.0)
@@ -119,24 +108,17 @@ impl SpriteManager {
 
                 // Dibuja cada pixel de la columna
                 for screen_y in start_y.max(0)..end_y.min(screen_height as i32) {
-                    // Calcula la coordenada de textura vertical
                     let ty = (screen_y - start_y) as f32 / sprite_height;
                     let texture_y = (ty * self.fire_texture.height() as f32)
                         .clamp(0.0, self.fire_texture.height() as f32 - 1.0)
                         as u32;
 
-                    // Lee el pixel de la textura
                     let pixel = self.fire_texture.get_pixel(texture_x, texture_y);
-
-                    // Si el alpha es 0, es transparente y no se dibuja
                     if pixel[3] == 0 {
                         continue;
                     }
-
-                    // Convierte a formato 0xRRGGBB
                     let color =
                         ((pixel[0] as u32) << 16) | ((pixel[1] as u32) << 8) | (pixel[2] as u32);
-
                     // Dibuja el pixel
                     if screen_x >= 0
                         && screen_x < screen_width as i32

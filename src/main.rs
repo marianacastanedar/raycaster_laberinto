@@ -18,34 +18,32 @@ use screens::{render_success, render_welcome, GameState, ScreenImages};
 use sprites::SpriteManager;
 use textures::TextureManager;
 
-/// Dimensiones de la ventana en pixeles.
+/// Dimensiones de la ventana
 pub const SCREEN_WIDTH: i32 = 1000;
 pub const SCREEN_HEIGHT: i32 = 600;
 
-/// Lado de una celda en coordenadas de mundo, en pixeles.
-/// Coincide con el ancho de las texturas (64) para que el muestreo sea 1:1.
+/// Lado de una celda
 pub const BLOCK_SIZE: f32 = 64.0;
 
-/// Campo de vision, en radianes (60 grados).
+/// Campo de vision en radianes (60 grados).
 pub const FOV: f32 = std::f32::consts::PI / 3.0;
 
-/// Velocidades en unidades por segundo; se multiplican por delta time.
+/// Velocidades
 pub const MOVE_SPEED: f32 = 160.0;
-pub const ROTATION_SPEED: f32 = 2.5;
+pub const ROTATION_SPEED: f32 = 10.0;
 
-/// Cuanto gira la camara por pixel de movimiento del mouse.
+/// Cuanto gira la camara con mouse
 pub const MOUSE_SENSITIVITY: f32 = 0.003;
 
-/// Radio de colision del jugador. Evita que la camara se pegue a las paredes.
+/// Radio de colision para que la camara se pegue a las paredes.
 pub const PLAYER_RADIUS: f32 = 12.0;
 
-/// Alto de la llama respecto al alto de una pared a la misma distancia.
+/// Alto de la llama
 pub const FIRE_SCALE: f32 = 0.55;
 
-/// Segundos entre pasos mientras el jugador camina.
+/// Segundos entre pasos mientras camina.
 pub const FOOTSTEP_INTERVAL: f32 = 0.3;
 
-/// Colores del techo y el piso.
 pub const CEILING_COLOR: u32 = 0x1A1A26;
 pub const FLOOR_COLOR: u32 = 0x3B2E24;
 
@@ -55,36 +53,33 @@ fn main() {
         .title("Raycaster Laberinto")
         .build();
 
-    // Inicializa el dispositivo de audio
+    // Inicia audio
     let mut raudio =
         RaylibAudio::init_audio_device().expect("no se pudo inicializar el dispositivo de audio");
 
-    // Carga el laberinto desde el archivo
+    // Carga el laberinto
     let maze = Maze::load("maze.txt", BLOCK_SIZE);
 
     // Carga todas las texturas de paredes
     let textures = TextureManager::load();
 
-    // Carga la textura de sprites (fuego)
     let sprites = SpriteManager::load();
 
-    // Carga las imagenes de las pantallas de bienvenida y éxito
+    // Carga las imagenes de pantallas
     let screen_images = ScreenImages::load();
 
     // Carga los recursos de audio
     let mut audio_manager = AudioManager::load(&mut raudio);
 
-    // Crea el jugador en la posicion inicial del laberinto
+    // Crea el jugador
     let mut player = Player::new(maze.player_start);
 
-    // Crea el framebuffer que usaremos para renderizar pixel por pixel
+    // Crea el framebuffer
     let mut fb = Framebuffer::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
-    fb.set_background_color(0x000000); // Negro
+    fb.set_background_color(0x000000);
 
-    // Crea una imagen de raylib con el tamano de la pantalla
+    // Crea una imagen de raylib
     let img = Image::gen_image_color(SCREEN_WIDTH, SCREEN_HEIGHT, Color::BLACK);
-
-    // Convierte la imagen a una textura que se puede dibujar
     let mut texture = rl
         .load_texture_from_image(&thread, &img)
         .expect("no se pudo crear la textura desde la imagen");
@@ -95,30 +90,26 @@ fn main() {
     // Estado inicial del juego
     let mut game_state = GameState::Welcome;
 
-    // Variable para rastrear si el jugador ya ganó
+    // si gana
     let mut has_won = false;
 
     // Ciclo principal
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
 
-        // Actualiza la música (IMPORTANTE: debe llamarse cada frame)
         audio_manager.update_music();
 
-        // Maneja las transiciones de estado
+        // Maneja estado
         match game_state {
             GameState::Welcome => {
-                // Renderiza la pantalla de bienvenida
                 render_welcome(&mut fb, &screen_images);
-
-                // Espera que el jugador presione Enter para comenzar
+                // Enter para comenzar
                 if rl.is_key_pressed(KeyboardKey::KEY_ENTER) {
                     game_state = GameState::Playing;
-                    rl.disable_cursor(); // Oculta el cursor al comenzar a jugar
+                    rl.disable_cursor(); 
                 }
             }
             GameState::Playing => {
-                // Actualiza el estado del jugador segun la entrada
                 let is_moving = player.update(
                     &rl,
                     &maze,
@@ -133,15 +124,15 @@ fn main() {
                 // Actualiza el sistema de pasos
                 audio_manager.update_footsteps(is_moving, FOOTSTEP_INTERVAL, dt);
 
-                // Verifica si el jugador alcanzó la meta
+                // si el jugador alcanzó la meta
                 if !has_won && player.has_reached_goal(&maze, BLOCK_SIZE) {
                     has_won = true;
                     audio_manager.play_victory();
                     game_state = GameState::Success;
-                    rl.enable_cursor(); // Muestra el cursor en la pantalla de éxito
+                    rl.enable_cursor();
                 }
 
-                // Renderiza la escena en 3D usando raycasting
+                // Renderiza la escena con raycasting
                 let zbuffer = caster::render_3d(
                     &mut fb,
                     &player,
@@ -153,7 +144,6 @@ fn main() {
                     FLOOR_COLOR,
                 );
 
-                // Renderiza los sprites de fuego usando el z-buffer
                 sprites.render_sprites(
                     &mut fb,
                     &player,
@@ -164,16 +154,12 @@ fn main() {
                     FIRE_SCALE,
                 );
 
-                // Renderiza el minimapa en la esquina superior derecha
                 minimap::render_minimap(&mut fb, &maze, &player, BLOCK_SIZE);
             }
             GameState::Success => {
-                // Renderiza la pantalla de éxito
                 render_success(&mut fb, &screen_images);
 
-                // Espera que el jugador presione Enter para reiniciar
                 if rl.is_key_pressed(KeyboardKey::KEY_ENTER) {
-                    // Reinicia el estado del juego
                     player = Player::new(maze.player_start);
                     has_won = false;
                     audio_manager.reset_victory();
@@ -183,7 +169,6 @@ fn main() {
             }
         }
 
-        // Actualiza la textura de raylib con el contenido del framebuffer
         texture
             .update_texture(&fb.buffer)
             .expect("no se pudo actualizar la textura");

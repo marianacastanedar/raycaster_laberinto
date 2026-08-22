@@ -4,23 +4,23 @@ use nalgebra_glm::Vec2;
 
 use crate::framebuffer::Framebuffer;
 
-/// Representa el laberinto cargado desde maze.txt.
+/// Representa el laberinto desde maze.txt
 pub struct Maze {
-    /// Matriz de caracteres del laberinto. Cada caracter representa un tipo de celda.
+    /// Cada caracter representa un tipo de celda.
     pub data: Vec<Vec<char>>,
-    /// Ancho del laberinto en celdas.
+    /// Ancho del laberinto
     pub width: usize,
-    /// Alto del laberinto en celdas.
+    /// Alto del laberinto
     pub height: usize,
-    /// Posicion inicial del jugador en coordenadas de mundo (pixeles).
+    /// Posicion inicial
     pub player_start: Vec2,
-    /// Posiciones de las llamas en coordenadas de mundo (pixeles).
+    /// Posiciones de las llamas
     pub fire_positions: Vec<Vec2>,
 }
 
 impl Maze {
-    /// Carga el laberinto desde un archivo de texto.
-    /// Los caracteres 'p' (jugador) y 'f' (llama) se extraen y reemplazan con ' '.
+    /// Carga el laberinto
+    /// 'p' (jugador) y 'f' (llama) se reemplazan con ' '.
     pub fn load(path: &str, block_size: f32) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|_| {
             panic!(
@@ -44,8 +44,7 @@ impl Maze {
 
                 match ch {
                     'p' => {
-                        // Guarda la posicion del jugador en coordenadas de mundo
-                        // (centro de la celda)
+                        // Guarda la posicion del jugador 
                         player_start = Vec2::new(
                             x as f32 * block_size + block_size / 2.0,
                             y as f32 * block_size + block_size / 2.0,
@@ -53,7 +52,7 @@ impl Maze {
                         data[y][x] = ' ';
                     }
                     'f' => {
-                        // Guarda la posicion de la llama en coordenadas de mundo
+                        // Guarda la posicion de la llama
                         fire_positions.push(Vec2::new(
                             x as f32 * block_size + block_size / 2.0,
                             y as f32 * block_size + block_size / 2.0,
@@ -76,8 +75,6 @@ impl Maze {
         }
     }
 
-    /// Devuelve el caracter en la celda especificada.
-    /// Retorna None si la posicion esta fuera de rango.
     pub fn get(&self, x: usize, y: usize) -> Option<char> {
         if y < self.height && x < self.width {
             Some(self.data[y][x])
@@ -86,17 +83,17 @@ impl Maze {
         }
     }
 
-    /// Verifica si una celda es solida (no se puede atravesar).
+    /// si una celda es solida
     pub fn is_solid(&self, x: usize, y: usize) -> bool {
         match self.get(x, y) {
             Some(' ') => false,
             Some(_) => true,
-            None => true, // Fuera de rango se considera solido
+            None => true,
         }
     }
 
-    /// Renderiza el laberinto completo en vista 2D cenital.
-    /// Escala el laberinto para que quepa en el framebuffer.
+    /// Renderiza el laberinto completo en 2D
+    /// Escala el laberinto para el framebuffer.
     #[allow(dead_code)]
     pub fn render_2d(&self, fb: &mut Framebuffer, block_size: f32) {
         // Calcula el factor de escala para que el laberinto quepa en pantalla
@@ -115,14 +112,13 @@ impl Maze {
                 let cell_width = (block_size * scale) as usize;
                 let cell_height = (block_size * scale) as usize;
 
-                // Dibuja un rectangulo solido para esta celda
                 draw_rect(fb, screen_x, screen_y, cell_width, cell_height, color);
             }
         }
     }
 }
 
-/// Devuelve el color asociado a un tipo de celda.
+/// Devuelve el color
 #[allow(dead_code)]
 fn get_cell_color(ch: char) -> u32 {
     match ch {
@@ -134,7 +130,6 @@ fn get_cell_color(ch: char) -> u32 {
     }
 }
 
-/// Dibuja un rectangulo solido en el framebuffer.
 #[allow(dead_code)]
 fn draw_rect(fb: &mut Framebuffer, x: usize, y: usize, w: usize, h: usize, color: u32) {
     for dy in 0..h {

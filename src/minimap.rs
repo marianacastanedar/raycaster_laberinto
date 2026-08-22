@@ -4,20 +4,19 @@ use crate::player::Player;
 
 /// Renderiza un minimapa en la esquina superior derecha del framebuffer.
 pub fn render_minimap(fb: &mut Framebuffer, maze: &Maze, player: &Player, block_size: f32) {
-    // Configuracion del minimapa
-    let minimap_size = 150; // Tamano del minimapa en pixeles
-    let margin = 10; // Margen desde el borde de la pantalla
+    let minimap_size = 150; // Tamano del minimapa
+    let margin = 10;
     let minimap_x = fb.width - minimap_size - margin;
     let minimap_y = margin;
 
-    // Calcula el factor de escala para que el laberinto quepa en el minimapa
+    // escala para que el laberinto quepa en el minimapa
     let maze_width_pixels = maze.width as f32 * block_size;
     let maze_height_pixels = maze.height as f32 * block_size;
     let scale_x = minimap_size as f32 / maze_width_pixels;
     let scale_y = minimap_size as f32 / maze_height_pixels;
     let scale = scale_x.min(scale_y);
 
-    // Dibuja un fondo semi-transparente oscuro para el minimapa
+    // fondo para el minimapa
     for y in 0..minimap_size {
         for x in 0..minimap_size {
             let px = minimap_x + x;
@@ -78,7 +77,7 @@ pub fn render_minimap(fb: &mut Framebuffer, maze: &Maze, player: &Player, block_
         0xFFFF00,
     );
 
-    // Dibuja un borde blanco alrededor del minimapa
+    // borde blanco alrededor del minimapa
     draw_rect_outline(
         fb,
         minimap_x,
@@ -89,11 +88,11 @@ pub fn render_minimap(fb: &mut Framebuffer, maze: &Maze, player: &Player, block_
     );
 }
 
-/// Devuelve el color de una celda en el minimapa.
+/// color de una celda en el minimapa.
 fn get_minimap_color(ch: char) -> u32 {
     match ch {
         '1' | '2' | '3' => 0x404040, // Gris oscuro para todas las paredes
-        'g' => 0xff43b3,             // Verde para la meta
+        'g' => 0xff43b3,             //la meta
         _ => 0x1A1A1A,               // Muy oscuro para piso
     }
 }
@@ -147,25 +146,21 @@ fn draw_line_minimap(fb: &mut Framebuffer, x0: i32, y0: i32, x1: i32, y1: i32, c
 
 /// Dibuja el contorno de un rectangulo.
 fn draw_rect_outline(fb: &mut Framebuffer, x: usize, y: usize, w: usize, h: usize, color: u32) {
-    // Linea superior
     for dx in 0..w {
         if x + dx < fb.width && y < fb.height {
             fb.point(x + dx, y, color);
         }
     }
-    // Linea inferior
     for dx in 0..w {
         if x + dx < fb.width && y + h - 1 < fb.height {
             fb.point(x + dx, y + h - 1, color);
         }
     }
-    // Linea izquierda
     for dy in 0..h {
         if x < fb.width && y + dy < fb.height {
             fb.point(x, y + dy, color);
         }
     }
-    // Linea derecha
     for dy in 0..h {
         if x + w - 1 < fb.width && y + dy < fb.height {
             fb.point(x + w - 1, y + dy, color);

@@ -4,11 +4,11 @@ use raylib::prelude::*;
 use crate::framebuffer::Framebuffer;
 use crate::maze::Maze;
 
-/// Representa el estado del jugador: posicion y orientacion.
+/// estado del jugador: posicion y orientacion.
 pub struct Player {
-    /// Posicion en coordenadas de mundo (pixeles).
+    /// Posicion
     pub pos: Vec2,
-    /// Angulo de vista en radianes. 0 apunta a la derecha, aumenta en sentido antihorario.
+    /// Angulo
     pub a: f32,
 }
 
@@ -18,9 +18,7 @@ impl Player {
         Self { pos, a: 0.0 }
     }
 
-    /// Actualiza el estado del jugador segun la entrada del usuario.
     /// Maneja movimiento (flechas arriba/abajo), rotacion (flechas izq/der y mouse) y colisiones.
-    /// Retorna true si el jugador se movio en este frame.
     #[allow(clippy::too_many_arguments)]
     pub fn update(
         &mut self,
@@ -62,36 +60,28 @@ impl Player {
         }
 
         if move_dir != 0.0 {
-            // Calcula la posicion tentativa
             let speed = move_speed * dt;
             let new_x = self.pos.x + dir_x * speed * move_dir;
             let new_y = self.pos.y + dir_y * speed * move_dir;
 
-            // Resuelve colisiones por eje para deslizarse a lo largo de las paredes
-            // Primero intenta mover en X con Y actual
+            // Resuelve colisiones
             let test_pos_x = Vec2::new(new_x, self.pos.y);
             if !self.check_collision(test_pos_x, maze, player_radius, block_size) {
                 self.pos.x = new_x;
             }
-
-            // Luego intenta mover en Y con X ya resuelta
             let test_pos_y = Vec2::new(self.pos.x, new_y);
             if !self.check_collision(test_pos_y, maze, player_radius, block_size) {
                 self.pos.y = new_y;
             }
-
-            // Retorna true porque el jugador intento moverse
             true
         } else {
-            // No hubo movimiento
             false
         }
     }
 
-    /// Verifica si una posicion colisiona con las paredes del laberinto.
-    /// Usa el radio del jugador para evitar que la camara se pegue a las paredes.
+    /// Verifica si colisiona con las paredes del laberinto.
+    /// Usa el radio para evitar que la camara se pegue a las paredes.
     fn check_collision(&self, pos: Vec2, maze: &Maze, radius: f32, block_size: f32) -> bool {
-        // Calcula las celdas a verificar en las cuatro direcciones cardinales
         let directions = [
             Vec2::new(radius, 0.0),
             Vec2::new(-radius, 0.0),
@@ -104,7 +94,7 @@ impl Player {
             let cell_x = (check_pos.x / block_size) as usize;
             let cell_y = (check_pos.y / block_size) as usize;
 
-            // Si alguna de las celdas es solida, hay colision
+            // Si es solida, hay colision
             if maze.is_solid(cell_x, cell_y) {
                 return true;
             }
@@ -113,13 +103,13 @@ impl Player {
         false
     }
 
-    /// Verifica si el jugador ha alcanzado la meta.
-    /// Retorna true si alguna de las celdas vecinas es 'g'.
+    /// si el jugador ha alcanzado la meta.
+    /// true si alguna de las celdas vecinas es 'g'.
     pub fn has_reached_goal(&self, maze: &Maze, block_size: f32) -> bool {
         let cell_x = (self.pos.x / block_size) as usize;
         let cell_y = (self.pos.y / block_size) as usize;
 
-        // Verifica las cuatro celdas vecinas
+        // Verifica celdas vecinas
         let neighbors = [
             (cell_x.wrapping_add(1), cell_y),
             (cell_x.wrapping_sub(1), cell_y),
@@ -141,14 +131,14 @@ impl Player {
     /// Renderiza el jugador en la vista 2D como un punto con una linea de direccion.
     #[allow(dead_code)]
     pub fn render_2d(&self, fb: &mut Framebuffer, block_size: f32) {
-        // Calcula el factor de escala para que el laberinto quepa en pantalla
+        // escala para que el laberinto quepa
         let maze_width_pixels = 25.0 * block_size;
         let maze_height_pixels = 17.0 * block_size;
         let scale_x = fb.width as f32 / maze_width_pixels;
         let scale_y = fb.height as f32 / maze_height_pixels;
         let scale = scale_x.min(scale_y);
 
-        // Posicion del jugador en pantalla
+        // Posicion del jugador
         let screen_x = (self.pos.x * scale) as i32;
         let screen_y = (self.pos.y * scale) as i32;
 
@@ -179,7 +169,7 @@ fn draw_circle(fb: &mut Framebuffer, cx: i32, cy: i32, radius: i32, color: u32) 
     }
 }
 
-/// Dibuja una linea en el framebuffer usando el algoritmo de Bresenham.
+/// linea usando el algoritmo de Bresenham.
 #[allow(dead_code)]
 fn draw_line(fb: &mut Framebuffer, x0: i32, y0: i32, x1: i32, y1: i32, color: u32) {
     let dx = (x1 - x0).abs();

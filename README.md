@@ -86,7 +86,6 @@ Asegúrate de tener los siguientes archivos en la carpeta `assets/`:
 - `assets/audio/footstep.ogg` - Efecto de pasos
 - `assets/audio/victory.ogg` - Sonido de victoria
 
-Consulta `PREPARACION_LOCAL.md` para instrucciones detalladas sobre cómo obtener estos recursos.
 
 ## Arquitectura técnica
 

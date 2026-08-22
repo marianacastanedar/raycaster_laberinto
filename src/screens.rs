@@ -13,7 +13,7 @@ pub enum GameState {
     Success,
 }
 
-/// Administra las imagenes de fondo de las pantallas de bienvenida y éxito.
+/// imagenes de fondo de las pantallas de bienvenida y éxito
 pub struct ScreenImages {
     welcome: RgbaImage,
     success: RgbaImage,
@@ -29,7 +29,7 @@ impl ScreenImages {
     }
 }
 
-/// Carga una imagen desde un archivo
+/// Carga una imagen
 fn load_image(path: &str) -> RgbaImage {
     let bytes = std::fs::read(path).unwrap_or_else(|_| {
         panic!(
@@ -94,13 +94,10 @@ pub fn render_success(fb: &mut Framebuffer, images: &ScreenImages) {
     draw_text_centered(fb, instruction, fb.height / 2 + 40, 0xCCCCCC, 1);
 }
 
-/// Dibuja una imagen centrada en el framebuffer, escalada para que quepa
-/// completa dentro de la ventana sin deformarse (ajuste "contain").
 fn draw_image_centered(fb: &mut Framebuffer, image: &RgbaImage) {
     let img_width = image.width() as f32;
     let img_height = image.height() as f32;
 
-    // Calcula el factor de escala que hace caber la imagen completa en la ventana
     let scale = (fb.width as f32 / img_width).min(fb.height as f32 / img_height);
 
     let draw_width = (img_width * scale).round() as usize;
@@ -115,7 +112,6 @@ fn draw_image_centered(fb: &mut Framebuffer, image: &RgbaImage) {
             let tx = ((dx as f32 / scale) as u32).min(image.width() - 1);
             let pixel = image.get_pixel(tx, ty);
 
-            // Respeta la transparencia de la imagen
             if pixel[3] == 0 {
                 continue;
             }
@@ -127,9 +123,7 @@ fn draw_image_centered(fb: &mut Framebuffer, image: &RgbaImage) {
     }
 }
 
-/// Oscurece todo el framebuffer mezclándolo con negro, para que el texto
-/// se lea con claridad sobre la imagen de fondo.
-/// alpha: 0.0 = sin cambio, 1.0 = negro total.
+/// Oscurece framebuffer para ver mejor
 fn dim_overlay(fb: &mut Framebuffer, alpha: f32) {
     for i in (0..fb.buffer.len()).step_by(4) {
         fb.buffer[i] = (fb.buffer[i] as f32 * (1.0 - alpha)) as u8;
@@ -137,9 +131,6 @@ fn dim_overlay(fb: &mut Framebuffer, alpha: f32) {
         fb.buffer[i + 2] = (fb.buffer[i + 2] as f32 * (1.0 - alpha)) as u8;
     }
 }
-
-/// Dibuja texto centrado en el framebuffer.
-/// scale: 1 = tamaño normal, 2 = doble tamaño, etc.
 fn draw_text_centered(fb: &mut Framebuffer, text: &str, y: usize, color: u32, scale: usize) {
     let char_width = 8 * scale;
     let text_width = text.len() * char_width;
@@ -148,7 +139,7 @@ fn draw_text_centered(fb: &mut Framebuffer, text: &str, y: usize, color: u32, sc
     draw_text(fb, text, x, y, color, scale);
 }
 
-/// Dibuja texto en el framebuffer usando una fuente bitmap simple.
+/// Dibuja texto con bitmap
 fn draw_text(fb: &mut Framebuffer, text: &str, x: usize, y: usize, color: u32, scale: usize) {
     let mut current_x = x;
 
@@ -158,14 +149,13 @@ fn draw_text(fb: &mut Framebuffer, text: &str, x: usize, y: usize, color: u32, s
     }
 }
 
-/// Dibuja un carácter usando una fuente bitmap simple de 8x8.
+/// Dibuja un carácter con bitmap de 8x8.
 fn draw_char(fb: &mut Framebuffer, ch: char, x: usize, y: usize, color: u32, scale: usize) {
     let glyph = get_glyph(ch);
 
     for (row, &byte) in glyph.iter().enumerate() {
         for col in 0..8 {
             if (byte >> (7 - col)) & 1 == 1 {
-                // Dibuja el pixel escalado
                 for sy in 0..scale {
                     for sx in 0..scale {
                         let px = x + col * scale + sx;
@@ -180,8 +170,7 @@ fn draw_char(fb: &mut Framebuffer, ch: char, x: usize, y: usize, color: u32, sca
     }
 }
 
-/// Devuelve el bitmap de un carácter (fuente 8x8).
-/// Cada byte representa una fila del carácter.
+
 fn get_glyph(ch: char) -> [u8; 8] {
     match ch {
         'A' => [0x18, 0x3C, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x00],
